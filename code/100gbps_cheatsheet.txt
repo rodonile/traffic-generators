@@ -1,0 +1,69 @@
+#################
+# MOONGEN
+#################
+1. Fill up link with UDP packets (with various sized packets)
+# UDP packets one-sided
+./scripts/test2.sh --rate 100000 --bytesize 500 --script udp_load_no_latency_4core.lua
+./scripts/test2.sh --rate 100000 --bytesize 64 --script udp_load_no_latency_6core.lua
+./scripts/test2.sh --rate 100000 --bytesize 64 --script udp_load_no_latency_8core.lua
+./scripts/test2.sh --rate 100000 --bytesize 64 --script udp_load_no_latency_10core.lua
+./scripts/test2.sh --rate 100000 --bytesize 64 --script udp_load_no_latency_12core.lua
+./scripts/test2.sh --rate 100000 --bytesize 64 --script udp_load_no_latency_14core.lua
+./scripts/test2.sh --rate 100000 --bytesize 64 --script udp_load_no_latency_16core.lua
+./scripts/test2.sh --rate 100000 --bytesize 64 --script udp_load_no_latency_18core.lua
+
+
+2. Latency measurement
+./scripts/test_timestamping.sh
+./scripts/test1.sh --rate 100 --bytesize 64 --script ethernet_load_latency.lua
+./scripts/test2.sh --rate 100 --bytesize 64 --script udp_load_latency_1core.lua
+
+
+
+#################
+# WARP17
+#################
+1. Fill up link with UDP Packets (one-sided)
+  Some coremasks: FF(6 cores), 3FF(8 cores), FFF(10 cores), 3FFF(12 cores), 
+                  FFFF(14 cores), 3FFFF(16 cores), FFFFF(18 cores)
+./tests/test6_udp.sh --cores FFF --request 22 --response 0 --time 60 --rate 100000000         # 1 core that sends 64bytes packets (22bytes payload+42byes headers)
+./tests/test6_udp.sh --cores FFF --request 122 --response 0 --time 60 --rate 100000000
+./tests/test6_udp.sh --cores FFF --request 258 --response 0 --time 60 --rate 100000000
+./tests/test6_udp.sh --cores FFF --request 458 --response 0 --time 60 --rate 100000000
+./tests/test6_udp.sh --cores FFF --request 758 --response 0 --time 60 --rate 100000000       # 1 core that sends 800bytes packets (758bytes pacload)
+./tests/test6_udp.sh --cores FFF --request 958 --response 0 --time 60 --rate 100000000
+./tests/test6_udp.sh --cores FFF --request 1476 --response 0 --time 60 --rate 100000000
+
+
+2. Latency measurement
+
+3. TCP testing
+
+
+#################
+# T-REX
+#################
+1. Fill link with UDP packets (one core)
+   Scale up cores with -c parameter
+   
+sudo ./t-rex-64 -f tests/yaml_files/udp_64bytes_1g.yaml -c 6 -d 60 -m 120
+sudo ./t-rex-64 -f tests/yaml_files/udp_164bytes.yaml -c 6 -d 60 -m 120
+sudo ./t-rex-64 -f tests/yaml_files/udp_300bytes.yaml -c 6 -d 60 -m 120
+sudo ./t-rex-64 -f tests/yaml_files/udp_450bytes.yaml -c 6 -d 60 -m 120
+sudo ./t-rex-64 -f tests/yaml_files/udp_500bytes.yaml -c 6 -d 60 -m 120
+sudo ./t-rex-64 -f tests/yaml_files/udp_1000bytes.yaml -c 6 -d 60 -m 120
+sudo ./t-rex-64 -f tests/yaml_files/udp_1518bytes_1g.yaml -c 6 -d 60 -m 120
+
+2. Latency measurements
+
+3. TCP testing
+
+
+
+
+
+
+
+
+
+

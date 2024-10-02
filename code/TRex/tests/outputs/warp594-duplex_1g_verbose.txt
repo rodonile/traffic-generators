@@ -1,0 +1,45 @@
+ set dpdk queues mode to ONE_QUE 
+no client generator pool configured, using default pool
+no server generator pool configured, using default pool
+ -- loading cap file tests/pcap_files/warp17_to_pythonTCP_594bytes_duplex.pcap 
+ id name                                     tps      cps       f-pkts f-bytes  duration Mb/sec  MB/sec c-flows PPS    errors flows
+ 00 tests/pcap_files/warp17_to_pythonTCP_594bytes_duplex.pcap     1.00      1.00    430   152176    17.42    1.22   0.15      17    430    0    1
+
+ 00 sum                                          1.00      1.00    430   152176    17.42    1.22   0.15      17    430    0    1
+ Memory usage 
+ size_64        : 0 
+ size_128       : 0 
+ size_256       : 0 
+ size_512       : 0 
+ size_1024      : 212 
+ size_2048      : 0 
+ size_4096      : 0 
+ size_8192      : 0 
+ size_16384     : 0 
+ Total    :     212.00 Kbytes  175% util due to buckets 
+
+
+
+
+file stats 
+=================
+ m_total_bytes                           :       8.56 Mbytes 
+ m_total_pkt                             :      25.37 Kpkt 
+ m_total_open_flows                      :      59.00  flows 
+ m_total_pkt                             : 25370 
+ m_total_open_flows                      : 59 
+ m_total_close_flows                     : 59 
+ m_total_bytes                           : 8978384 
+
+
+normal
+-------------
+ min_delta  : 10 usec 
+ cnt        : 0 
+ high_cnt   : 0 
+ max_d_time : 0 usec
+ sliding_average    : 0 usec
+ precent    : -nan %
+ histogram 
+ -----------
+ d time = 213l 100l 

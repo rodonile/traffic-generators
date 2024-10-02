@@ -1,0 +1,153 @@
+##########################################################################
+# BASICS
+##########################################################################
+# TYPICAL T-REX EXECUTION
+sudo ./t-rex-64 -f <traffic_yaml> -m <multiplier>  -d <duration>  -l <latency test rate>  -c <cores>
+
+# Useful parameters (more on doc 6.3 command-line-options)
+-m      bandwidth multiplier --> multiply bandwidth defined in yaml config (cps rate, i.e #connections per second)
+-l      how many latency packets/second to send for latency measurements (can be 0) in parallel to the test
+-c      how many hardware threads to use per interface pair (2 always used by trex for inner needs, hence max=6 for 8 cores processor)
+        --> default -c 1 !!!
+-d      overwrites duration specified in yaml file
+--nc    don't wait for all flows to terminate before exit (may be useful for real/incomplete traffic)
+
+#####################################
+# DPDK interface
+#####################################
+sudo ./dpdk_nic_bind.py -s
+
+#####################################
+# First tests (from official examples)
+#####################################
+# Start basic http session of 60s duration (min=30s)
+# --> nc to performe accurate termination of Trex
+# --> latency check disabled by default, enable with -l 1000 (to have 1000pps for latency check)
+sudo ./t-rex-64 -f cap2/http_simple.yaml -d 60 -m 1
+
+# More bandwidth (100 x cps value in yaml file)
+sudo ./t-rex-64 -f cap2/http_simple.yaml -d 60 -m 100
+
+# 10Gbps saturate link with simple http flows
+sudo ./t-rex-64 -f cap2/http_simple.yaml -c 4 -m 13500 -d 100
+
+# Requests on single dns server
+sudo ./t-rex-64 -f cap2/dns_one_server.yaml -d 60 -m 1
+
+# HTTP Bursts (with -m 1 cps = 1conn/10s)
+sudo ./t-rex-64 -f tests/yaml_files/http_bursts.yaml -c 4 -m 1 -d 100
+
+# DNS Bursts (with -m 1 cps = 1conn/10s)
+sudo ./t-rex-64 -f tests/yaml_files/dns_bursts.yaml -c 4 -m 1 -d 100
+
+#####################################
+# OUTPUT STATISTICS
+#####################################
+
+# To have pcap or csv of what will actually be sent by t-rex (debug mode)
+sudo ./bp-sim-64-debug -f cap2/http_simple.yaml -d 60 -o tests/outputs/http_pcap_output.erf         # output in pcap
+sudo ./bp-sim-64-debug -f cap2/http_simple.yaml -d 60 -v 2 > tests/outputs/http_verbose_output.txt  # output verbose (-v 3 for all packets in csv)
+
+# To have output of t-rex be saved into file
+sudo ./t-rex-64 -f cap2/http_simple.yaml -c 4 -m 13500 -d 100 2>&1 | tee tests/outputs/http_main_output.txt
+
+#####################################
+# Dummy ports (load config with --cfg)
+#####################################
+# Observation: Expected-BPS (warp statistic) is based on duplex statistics. Here it seems that it is simply halved, therefore
+#              not reliable anymore for what is really sent from the interface!
+
+#Examples
+sudo ./t-rex-64 -f cap2/http_simple.yaml -d 60 -m 100 --cfg tests/config_files/trex_client_cfg.yaml
+sudo ./t-rex-64 -f tests/yaml_files/warp/tcp-warp_200bytes.yaml -c 4 -d 60 -m 10 --cfg tests/config_files/trex_client_cfg.yaml --active-flows 500000
+
+# Send to interface p1p2 and capture (need interface p1p2 binded to kernel at ip address 48.0.0.1)
+./tests/start_tshark.sh -B 500 -w httpsimple.pcap
+sudo ./t-rex-64 -f tests/yaml_files/http_simple_1server.yaml -d 60 -m 10 --cfg tests/config_files/trex_client_cfg.yaml
+
+##########################################################################
+# MAIN TESTS
+##########################################################################
+
+#####################################
+# TCP tests (warp17 comparison)
+#####################################
+# To normalize bandwidth
+sudo ./bp-sim-64-debug -f tests/yaml_files/warp/tcp-warp_500bytes_1g.yaml -d 30 -v 2 > tests/outputs/500bytes.txt
+
+# One-sided p1p1-->p1p2 (2 cores)
+sudo ./t-rex-64 -f tests/yaml_files/warp/tcp-warp_200bytes.yaml -c 2 -d 60 -m 15 --active-flows 500000
+sudo ./t-rex-64 -f tests/yaml_files/warp/tcp-warp_500bytes_1g.yaml -c 2 -d 60 -m 15 --active-flows 500000
+sudo ./t-rex-64 -f tests/yaml_files/warp/tcp-warp_750bytes.yaml -c 2 -d 60 -m 15 --active-flows 500000
+sudo ./t-rex-64 -f tests/yaml_files/warp/tcp-warp_1000bytes.yaml -c 2 -d 60 -m 15 --active-flows 500000
+sudo ./t-rex-64 -f tests/yaml_files/warp/tcp-warp_1500bytes.yaml -c 2 -d 60 -m 15 --active-flows 500000
+
+# Duplex (max 500k flows due to memory restraints)
+sudo ./t-rex-64 -f tests/yaml_files/warp/tcp-warp_500bytes-duplex_1g.yaml -c 4 -d 60 -m 30 --active-flows 500000
+sudo ./t-rex-64 -f tests/yaml_files/warp/tcp-warp_750bytes-duplex.yaml -c 4 -d 60 -m 30 --active-flows 500000
+sudo ./t-rex-64 -f tests/yaml_files/warp/tcp-warp_1000bytes-duplex.yaml -c 4 -d 60 -m 30 --active-flows 500000
+sudo ./t-rex-64 -f tests/yaml_files/warp/tcp-warp_1500bytes-duplex.yaml -c 4 -d 60 -m 30 --active-flows 500000
+
+# Wrong TCP session (t-rex replays it withous signaling any issues)
+sudo ./t-rex-64 -f tests/yaml_files/warp/tcp-warp_wrongTCP.yaml -c 2 -d 60 -m  1
+sudo ./bp-sim-64-debug -f tests/yaml_files/warp/tcp-warp_wrongTCP.yaml -d 60 -o tests/outputs/wrongTCP.erf
+
+#####################################
+# UDP tests (moongen and stateless-trex comparison)
+#####################################
+sudo ./t-rex-64 -f tests/yaml_files/udp_64bytes_1g.yaml -c 6 -d 60 -m 10
+sudo ./t-rex-64 -f tests/yaml_files/udp_594bytes_1g.yaml -c 6 -d 60 -m 10
+sudo ./t-rex-64 -f tests/yaml_files/udp_1518bytes_1g.yaml -c 6 -d 60 -m 10
+
+# Tests for comparative plot (one sided, one core)
+sudo ./t-rex-64 -f tests/yaml_files/udp_64bytes_1g.yaml -c 1 -d 60 -m 15
+sudo ./t-rex-64 -f tests/yaml_files/udp_164bytes.yaml -c 1 -d 60 -m 15
+sudo ./t-rex-64 -f tests/yaml_files/udp_300bytes.yaml -c 1 -d 60 -m 15
+sudo ./t-rex-64 -f tests/yaml_files/udp_500bytes.yaml -c 1 -d 60 -m 15
+sudo ./t-rex-64 -f tests/yaml_files/udp_1000bytes.yaml -c 1 -d 60 -m 15
+
+
+# Duplex, -p option (need double -m to saturate link in duplex)
+sudo ./t-rex-64 -f tests/yaml_files/udp_594bytes_1g.yaml -c 6 -d 60 -m 22 -p
+
+
+
+#####################################
+# IMIX tests (from examples)
+#####################################
+# SFR mix traffic 
+sudo ./t-rex-64 -f tests/yaml_files/imix_sfr-big_1g.yaml -c 6 -d 60 -m 1
+
+# Saturate link (4Gbps client-->server and 10Gbps server-->client) and run for 10min        # REAL LIFE TEST
+sudo ./t-rex-64 -f tests/yaml_files/imix_sfr-big_1g.yaml -c 6 -d 600 -m 15
+
+# SFR mix traffic with delay
+sudo ./t-rex-64 -f tests/yaml_files/imix_sfr-delay-10ms_1g.yaml -c 6 -d 60 -m 1
+
+
+#####################################
+# CAIDA tests
+#####################################
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

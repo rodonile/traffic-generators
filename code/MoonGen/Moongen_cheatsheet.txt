@@ -1,0 +1,123 @@
+TESTED WEEK 2 CHEATSHEET
+
+----> GRAFICI DI RISULTATI SU JUPYTER
+##############################
+ethernet_load_no_latency & ethernet_load_latency (test1.sh)
+##############################
+# without modification, single core
+#reaches ~7200 Mbit/s (~9400Mbps with framing)--almost already full link
+./scripts/test1.sh --rate 10000 --bytesize 60 --script ethernet_load.lua
+
+# bottlenecks at ~9600 Mbit/s (10000 Mbit/s with framing) -- full link
+./scripts/test1.sh --rate 10000 --bytesize 500 --script ethernet_load.lua
+
+# TWO CORES (two threads started) (one sided communication only)
+# bottlenecks at 7600 Mbit/s
+./scripts/test1.sh --rate 10000 --bytesize 60 --script ethernet_load_latency.lua
+
+# remove latency measurement -- bottlenecks at 7600 Mbit/s (performance not affected)
+./scripts/test1.sh --rate 10000 --bytesize 60 --script ethernet_load_no_latency.lua)
+
+
+
+##############################
+udp_load_no_latency & udp_load_latency (test2.sh)
+##############################
+(Bottleneck at 10000Mbps with framing for all cases other than first)
+
+# basic example with SINGLE CORE
+# reaches ~2800 Mbit/s without framing (~3700Mbps with framing) --> too small packet size, hence # too many headers to write (not enough single core)
+./scripts/test2.sh --rate 10000 --bytesize 64 --script udp_load.lua
+
+# bottlenecks at ~9600 Mbit/s (10000Mbps with framing) --> single core enough for big packets
+./scripts/test2.sh --rate 10000 --bytesize 500 --script udp_load.lua
+
+# enable MULTIPLE CORES (4 cores, by starting 4 threads)
+# bottlenecks at ~7700Mbps without framing 
+./scripts/test2.sh --rate 10000 --bytesize 64 --script udp_load_no_latency_4core.lua
+
+# bottlenecks at ~7700Mbps without framing (no performance loss due to latency measurement-->additional indepentent thread!)
+./scripts/test2.sh --rate 10000 --bytesize 64 --script udp_load_latency_4core.lua
+
+# bottlenecks at ~9600Mbps without framing
+./scripts/test2.sh --rate 10000 --bytesize 500 --script udp_load_no_latency_4core.lua
+
+
+##############################
+moongen packet capture (only udp packets)
+# little bit performance loss but not too much
+# had to merge dpdk-dump.lua with udp_load.lua (cannot run multiple dpdk instances on same interface)
+##############################
+./scripts/dpdk_pcap.sh --rate 1000 --bytesize 100 -f capture_udp_latency_1gbps_100bytes.pcap --latency yes
+
+./scripts/dpdk_pcap.sh --rate 1000 --bytesize 60 -f capture_udp_no_latency_1gbps_60bytes.pcap --latency no
+
+./scripts/dpdk_pcap.sh -f capture_PTP_packets_latency.pcap --latency cap
+--> if timestamps are captured, then latency measurements don't succede (vedi 3week_Moongen_timestamping.txt)
+--> to understand latency and timestamps, see 3week notes
+
+
+###############################
+tshark packet capture
+###############################
+Osservazioni:
+
+# unbind driver for interface p1p2
+sudo ./libmoon/deps/dpdk/usertools/dpdk-devbind.py -u 0000:05:00.1
+
+# bind to kernel driver
+sudo ./libmoon/deps/dpdk/usertools/dpdk-devbind.py --bind=ixgbe 0000:05:00.1
+
+#check if ok
+sudo ./libmoon/deps/dpdk/usertools/dpdk-devbind.py -s
+
+# bring up interface
+sudo ifconfig p1p2 up
+sudo ifconfig p1p2 10.1.0.10
+
+# start tshark
+./scripts/start_tshark.sh -w capture_1Gbps_60bytes.pcap
+# start tshark with 2GB buffer size(if packet drop by tshark is observed)
+./scripts/start_tshark.sh -B 2000 -w capture_1Gbps_60bytes.pcap
+
+
+# start udp flow towards interface 
+# DPDK-TIMESTAMPING CAPABILITY DOES NOT MAKE SENSE HERE (feature only to be used for latency measurement
+# and works only with 2 dpdk-binded interfaces)
+# Tshark already adds timestamp to packets (software, more precise than the ones added by dpdk dump-pkts.lua)
+./scripts/tshark_pcap_traffic.sh --rate 1000 --bytesize 60
+
+# Start only latency measurement thread and try to capture PTP packets on p1p2
+# (captures PTP packets but latency measurement doesn't succede since need other interface binded to dpdk)
+./scripts/tshark_pcap_traffic.sh --latency cap
+
+# unbind kernel driver from interface p1p2
+sudo ifconfig p1p2 down
+sudo ./libmoon/deps/dpdk/usertools/dpdk-devbind.py -u 0000:05:00.1
+
+# bind dpdk driver again
+sudo ./libmoon/deps/dpdk/usertools/dpdk-devbind.py -b igb_uio 0000:05:00.1
+
+#check if ok
+sudo ./libmoon/deps/dpdk/usertools/dpdk-devbind.py -s
+
+###############################
+# Warp confrontation
+###############################
+
+# test duplex configuration (ethernet packets) --> can saturate with 60bytes packets!
+./scripts/test1.sh --rate 10000 --bytesize 60 --script ethernet_load_duplex.lua
+
+# test duplex configuration (udp) packets --> also can saturate with 60bytes packets!
+./scripts/test2.sh --rate 10000 --bytesize 60 --script udp_load_duplex.lua
+
+
+
+
+
+
+
+
+
+
+

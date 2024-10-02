@@ -1,0 +1,235 @@
+##############################################################
+# BASIC SETUP
+##############################################################
+
+# DPDK is installed in 
+$RTE_SDK=/opt/dpdk-17.11.6
+
+# DPDK Setup
+$RTE_SDK/usertools/dpdk-setup.sh
+
+# Enter python virtualenv (required to run python tests, didn't manage to run them though)
+source warp17-venv/bin/activate
+# Exit virtualenv
+deactivate
+
+# Upon server reboot interfaces will be automatically binded to kernel driver and igb_uio driver is uninstalled
+# --> need to bind them to dpdk driver
+# --> bind using bind-interface.sh script of moongen (couldn't figure out how to install igb_uio with dpdk...)
+#Check if drivers are binded correctly
+$RTE_SDK/usertools/dpdk-devbind.py -s
+
+###############################
+tshark packet capture setup
+###############################
+
+# unbind driver for interface p1p2
+sudo $RTE_SDK/usertools/dpdk-devbind.py -u 0000:05:00.1
+
+# bind to kernel driver
+sudo $RTE_SDK/usertools/dpdk-devbind.py --bind=ixgbe 0000:05:00.1
+
+#check if ok
+$RTE_SDK/usertools/dpdk-devbind.py -s
+
+# bring up interface
+sudo ifconfig p1p2 up
+sudo ifconfig p1p2 10.0.0.253
+
+########
+
+# unbind kernel driver from interface p1p2
+sudo ifconfig p1p2 down
+sudo $RTE_SDK/usertools/dpdk-devbind.py -u 0000:05:00.1
+
+# bind dpdk driver again
+sudo $RTE_SDK/usertools/dpdk-devbind.py -b igb_uio 0000:05:00.1
+
+#check if ok
+sudo $RTE_SDK/usertools/dpdk-devbind.py -s
+
+
+###############################
+# Memory and hugepages
+###############################
+# show memory information
+cat /proc/meminfo
+# show shared memory segments
+ipcs -m 
+
+
+###############################
+# Run warp with cli commands
+###############################
+
+./build/warp17 -- --cmd-file <example.cfg>
+
+# 10M TCP session 
+./build/warp17 -m 32768 -- --qmap-default max-q --tcb-pool-sz 32768 --cmd-file examples/test_4_http_10M_sessions.cfg
+
+
+###############################
+# Testing scripts default parameters (in required order)
+###############################
+--cores FF (default all 8 cores)
+--memory 32GB
+--sessions 200k
+--request 100
+--response 200
+--time 180
+--uptime infinite
+--downtime infinite
+--setup 10000
+--teardown 10000
+--rate 0
+--statsfile filename.txt
+--period 30 (minimum=10)
+
+##############################################################
+# Test warp17 (both interfaces dpdk-binded)
+##############################################################
+# Allocate 16GB of memory, setup 1 tcp session and send data at maximum rate
+./tests/test1_tcp_sessions.sh --memory 16 --sessions 1 --rate infinite
+
+# Setup 200k sessions (10000 each second), don't send other data than syn/acks for connection establishment
+./tests/test1_tcp_sessions.sh --memory 16 --sessions 200k --setup 10000 --rate 0
+
+# Setup 200k sessions and send data at maximum rate (sends ~900k requests/s)
+./tests/test1_tcp_sessions.sh --memory 32 --sessions 200k --request 1000 --response 1000 --rate infinite
+
+# Manually set number of cores (see warp documentation to know how)
+# --> wanted to capture on interface p1p2 when  both interfaces were used by warp (test1_tcp_sessions.sh)
+# --> can only bind dpdk interface to one dpdk program, so didn't work
+./tests/test1_tcp_sessions.sh --cores 1F --memory 16 --sessions 100 --setup 10 --rate 0
+
+###############################
+# Sessions saturation tests 
+###############################
+
+# Setup 10 million sessions at 500k per second (without sending data).
+./tests/test1_tcp_sessions.sh --memory 32 --sessions 10M --setup 500000 --rate 0
+
+
+###############################
+# Link saturation tests
+###############################
+# 3 cores (cores 0 to 2) , minimum since 2 cores are for management and ui outputs
+./tests/test1_tcp_sessions.sh --cores 7 --memory 16 --sessions 200k --request 500 --response 500 --setup 10000 --rate infinite 
+
+# All cores (reaches 75% with 1000bytes packets --> definitely more overhead than moongen, makes sense)
+./tests/test1_tcp_sessions.sh --memory 16 --sessions 200k --request 1000 --response 1000 --setup 10000 --rate infinite
+
+# All cores and 10M sessions (--> no difference that with 200k--> bottleneck is cpu power for sending tcp data processing)
+./tests/test1_tcp_sessions.sh --memory 32 --sessions 10M --request 500 --response 500 --setup 500000 --rate infinite
+
+# Small requests and big responses --> TX 20% and RX 100% (saturated interface p1p2s)
+./tests/test1_tcp_sessions.sh --memory 32 --sessions 200k --request 200 --response 2000 --setup 10000 --rate infinite
+
+# Setup 200k session and send from max possible sessions/s without waiting for answers (response size 0, only acks)
+# --> vedi grafici jupyter notebook
+./tests/test1_tcp_sessions.sh --memory 16 --sessions 200k --request 500 --response 0 --setup 10000 --rate infinite                  # 6 cores (max)
+./tests/test1_tcp_sessions.sh --cores 3F --memory 16 --sessions 200k --request 500 --response 0 --setup 10000 --rate infinite       # 4 cores
+./tests/test1_tcp_sessions.sh --cores F --memory 16 --sessions 200k --request 500 --response 0 --setup 10000 --rate infinite        # 2 cores
+
+
+###############################
+# Also enable statistic dump into file
+###############################
+./tests/test1_tcp_sessions.sh --cores 7F --memory 16 --sessions 200k --request 1000 --response 1000 --rate infinite --statsfile periodic_stats_1.txt
+
+###############################
+# Multiple tests and IMIX traffic
+###############################
+./tests/test5_imix.sh
+
+
+##############################################################
+# Test against tcpserver (IMPORTANT: need equal request and response time! Otherwise need to change python script)
+##############################################################
+# Start tshark
+./tests/start_tshark.sh -B 500 -w warp17_to_pythonTCP.pcap
+
+# Run tcpserver at 10.0.0.253 and port 6001 (python2)
+python tests/tcpserver.py
+
+# Setup 100 sessions and send from all of them
+./tests/test2_tcp_client.sh --memory 16 --sessions 100 --request 500 --response 500 --time 60 --setup 10 --rate 100
+
+# Setup 1 session and send from 100sessions/s 
+# Important: warp simply sends 100 requests/s from the one established session! ---> rate is not really sessions/s that send, but requests/s!
+./tests/test2_tcp_client.sh --memory 16 --sessions 1 --request 500 --response 500 --time 60 --rate 100
+
+# Setup 100 sessions that will go down and will be tore up again (session resumption--> see 6week guidelines)
+./tests/test2_tcp_client.sh --memory 16 --sessions 100 --request 500 --response 500 --time 120 --uptime 15 --downtime 15 --rate 0
+./tests/test2_tcp_client.sh --memory 16 --sessions 100 --request 500 --response 500 --time 120 --uptime 15 --downtime 15 --rate 100
+
+# Wrong response size (or could trigger same behaviour by not sending back packets to warp) --> warp17 only sends first payload packet
+./tests/test2_tcp_client.sh --memory 16 --sessions 100 --request 500 --response 1500 --time 30 --rate 100
+
+###############################
+# Retransmission tests
+###############################
+# flood with syn (tcpserver.py resisted)
+./tests/test2_tcp_client.sh --memory 16 --sessions 1k --time 45 --setup 200 --rate 0
+
+# heavier syn flood (tcpserver.py crashed due to too many open files)
+# --> retransmission timeout ~50ms (estimated on wireshark pcap)
+./tests/test2_tcp_client.sh --memory 16 --sessions 10k --time 45 --setup 500 --rate 0
+
+
+###############################
+# Zero response size (need to use python_only_ack.py) 
+###############################
+# Setup 100 session and send from 100 sessions/s without waiting for answers (only acks)
+./tests/test2_tcp_client.sh --memory 16 --sessions 100 --request 500 --response 0 --time 60 --setup 10 --rate 100
+
+
+###############################
+# Genaration of pcaps for TREX (1 session)
+###############################
+./tests/test2_tcp_client.sh --memory 16 --sessions 1 --request 200 --response 0 --time 20 --rate 10
+./tests/test2_tcp_client.sh --memory 16 --sessions 1 --request 500 --response 0 --time 20 --rate 10
+./tests/test2_tcp_client.sh --memory 16 --sessions 1 --request 1000 --response 0 --time 20 --rate 10
+./tests/test2_tcp_client.sh --memory 16 --sessions 1 --request 1250 --response 0 --time 20 --rate 10
+./tests/test2_tcp_client.sh --memory 16 --sessions 1 --request 1500 --response 0 --time 20 --rate 10
+
+./tests/test2_tcp_client.sh --memory 16 --sessions 1 --request 200 --response 200 --time 20 --rate 10
+./tests/test2_tcp_client.sh --memory 16 --sessions 1 --request 500 --response 500 --time 20 --rate 10
+./tests/test2_tcp_client.sh --memory 16 --sessions 1 --request 1000 --response 1000 --time 20 --rate 10
+./tests/test2_tcp_client.sh --memory 16 --sessions 1 --request 1250 --response 1250 --time 20 --rate 10
+./tests/test2_tcp_client.sh --memory 16 --sessions 1 --request 1500 --response 1500 --time 20 --rate 10
+
+
+###############################
+# UDP packet flow (for comparison plot)
+###############################
+./tests/test6_udp.sh --cores 7 --request 22 --response 0 --time 60 --rate 10000000         # 1 core that sends 64bytes packets (22bytes payload)
+./tests/test6_udp.sh --cores 7 --request 22 --response 0 --time 60 --rate 10000000
+./tests/test6_udp.sh --cores 7 --request 22 --response 0 --time 60 --rate 10000000
+./tests/test6_udp.sh --cores 7 --request 22 --response 0 --time 60 --rate 10000000
+./tests/test6_udp.sh --cores 7 --request 22 --response 0 --time 60 --rate 10000000
+./tests/test6_udp.sh --cores 7 --request 22 --response 0 --time 60 --rate 10000000
+./tests/test6_udp.sh --cores 7 --request 22 --response 0 --time 60 --rate 10000000
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

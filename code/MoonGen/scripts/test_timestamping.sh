@@ -1,0 +1,1 @@
+sudo ./build/MoonGen ./examples/timestamping-tests/test-timestamping-capabilities.lua 0 1

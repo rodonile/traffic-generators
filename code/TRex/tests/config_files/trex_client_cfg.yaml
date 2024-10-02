@@ -1,0 +1,20 @@
+# Dummy port on server side
+# This way t-rex runs only with one interface as client only
+# --> Can be used with all t-rex mode, although see "https://trex-tgn.cisco.com/trex/doc/trex_manual.html#_dummy_ports"
+#     in order to see what's possible
+
+- version: 2
+  interfaces: ['05:00.0', 'dummy']
+  port_info:
+      - dest_mac: f8:f2:1e:09:62:d1 # MAC OF LOOPBACK TO IT'S DUAL INTERFACE
+        src_mac:  f8:f2:1e:09:62:d0
+      - dest_mac: f8:f2:1e:09:62:d0 # MAC OF LOOPBACK TO IT'S DUAL INTERFACE
+        src_mac:  f8:f2:1e:09:62:d1
+
+  platform:
+      master_thread_id: 0
+      latency_thread_id: 7
+      dual_if:
+        - socket: 0
+          threads: [1,2,3,4,5,6]
+

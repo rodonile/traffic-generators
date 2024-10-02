@@ -1,0 +1,69 @@
+############################
+# Basics
+############################
+
+# Start t-rex stateless server (default -c 1 --> started with one core if not specified)
+sudo ./t-rex-64 -i -c 6
+
+# In another terminal (from console can start and stop flows)
+sudo ./trex-console
+
+# Stop all flows
+stop -a
+
+###############
+# T-rex official examples
+###############
+# UDP flow with 10bytes payload
+start -f stl/udp_1pkt_simple.py -m 10mbps
+
+# IMIX traffic with 3 different sized udp packets
+start -f stl/imix.py -m 100mbps
+
+# UDP flow with pcap
+start -f stl/udp_1pkt_pcap.py -m 100mbps
+
+
+###############
+# Start from pcaps with 1 packet (direct comparison with stateful t-rex)
+###############
+start -f tests/stateless_py_files/udp_64bytes.py -m 7720mbps        # 64 bytes max bandwidth is 7.7Gbps (link saturated)
+start -f tests/stateless_py_files/udp_594bytes.py -m 9646mbps       # 594 bytes max bandwidth is 9.6Gbps (link saturated)
+start -f tests/stateless_py_files/udp_1518bytes.py -m 9860mbps      # 1518 bytes max bandwidth is 9.7Gbps (link saturated)
+
+
+# One-directional (set -p 0, this way only sends from port 0)
+start -f tests/stateless_py_files/udp_64bytes.py -m 7720mbps -p 0   
+start -f tests/stateless_py_files/udp_164bytes.py -m 8930mbps -p 0
+start -f tests/stateless_py_files/udp_300bytes.py -m 9380mbps -p 0
+start -f tests/stateless_py_files/udp_500bytes.py -m 9610mbps -p 0
+start -f tests/stateless_py_files/udp_1000bytes.py -m 9800mbps -p 0
+start -f tests/stateless_py_files/udp_1518bytes.py -m 9860mbps -p 0
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

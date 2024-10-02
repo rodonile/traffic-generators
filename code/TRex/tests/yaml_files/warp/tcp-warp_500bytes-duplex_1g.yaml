@@ -1,0 +1,70 @@
+# Replay of warp17's packet capture
+# --> tcp session with 500bytes duplex
+# --> 1Gbps with -m  1
+#
+- duration : 1
+  generator :  
+          distribution : "seq"
+          clients_start : "16.0.0.1"
+          clients_end   : "16.0.0.255"
+          servers_start : "48.0.0.1"
+          servers_end   : "48.0.255.255"
+          clients_per_gb : 201
+          min_clients    : 101
+          dual_port_mask : "1.0.0.0" 
+          tcp_aging      : 0
+          udp_aging      : 0
+  cap_ipg    : true
+  cap_info : 
+     - name: tests/pcap_files/warp_duplex_500bytes.pcap
+       cps : 100                                    # normalized at duplex-100Mbps traffic (a little more BW from p1p1-->p1p2)!
+       ipg : 10000                                  # ineffective since cap_ipg=true (see documentation)
+       rtt : 10000
+       w   : 1
+     - name: tests/pcap_files/warp_duplex_500bytes.pcap
+       cps : 100                                    # normalized at duplex-100Mbps traffic (a little more BW from p1p1-->p1p2)!
+       ipg : 10000                                  # ineffective since cap_ipg=true (see documentation)
+       rtt : 10000
+       w   : 1
+     - name: tests/pcap_files/warp_duplex_500bytes.pcap
+       cps : 100                                    # normalized at duplex-100Mbps traffic (a little more BW from p1p1-->p1p2)!
+       ipg : 10000                                  # ineffective since cap_ipg=true (see documentation)
+       rtt : 10000
+       w   : 1
+     - name: tests/pcap_files/warp_duplex_500bytes.pcap
+       cps : 100                                    # normalized at duplex-100Mbps traffic (a little more BW from p1p1-->p1p2)!
+       ipg : 10000                                  # ineffective since cap_ipg=true (see documentation)
+       rtt : 10000
+       w   : 1
+     - name: tests/pcap_files/warp_duplex_500bytes.pcap
+       cps : 100                                   # normalized at duplex-100Mbps traffic (a little more BW from p1p1-->p1p2)!
+       ipg : 10000                                  # ineffective since cap_ipg=true (see documentation)
+       rtt : 10000
+       w   : 1
+     - name: tests/pcap_files/warp_duplex_500bytes.pcap
+       cps : 100                                   # normalized at duplex-100Mbps traffic (a little more BW from p1p1-->p1p2)!
+       ipg : 10000                                  # ineffective since cap_ipg=true (see documentation)
+       rtt : 10000
+       w   : 1
+     - name: tests/pcap_files/warp_duplex_500bytes.pcap
+       cps : 100                                   # normalized at duplex-100Mbps traffic (a little more BW from p1p1-->p1p2)!
+       ipg : 10000                                  # ineffective since cap_ipg=true (see documentation)
+       rtt : 10000
+       w   : 1
+     - name: tests/pcap_files/warp_duplex_500bytes.pcap
+       cps : 100                                    # normalized at duplex-100Mbps traffic (a little more BW from p1p1-->p1p2)!
+       ipg : 10000                                  # ineffective since cap_ipg=true (see documentation)
+       rtt : 10000
+       w   : 1
+     - name: tests/pcap_files/warp_duplex_500bytes.pcap
+       cps : 100                                   # normalized at duplex-100Mbps traffic (a little more BW from p1p1-->p1p2)!
+       ipg : 10000                                  # ineffective since cap_ipg=true (see documentation)
+       rtt : 10000
+       w   : 1
+     - name: tests/pcap_files/warp_duplex_500bytes.pcap
+       cps : 100                                   # normalized at duplex-100Mbps traffic (a little more BW from p1p1-->p1p2)!
+       ipg : 10000                                  # ineffective since cap_ipg=true (see documentation)
+       rtt : 10000
+       w   : 1
+
+

@@ -1,0 +1,56 @@
+ set dpdk queues mode to ONE_QUE 
+no client generator pool configured, using default pool
+no server generator pool configured, using default pool
+ -- loading cap file cap2/dns.pcap 
+ id name                                     tps      cps       f-pkts f-bytes  duration Mb/sec  MB/sec c-flows PPS    errors flows
+ 00 cap2/dns.pcap                                0.10      0.10      2      170     0.02    0.00   0.00       0      0    0    1
+
+ 00 sum                                          0.10      0.10      2      170     0.02    0.00   0.00       0      0    0    1
+ Memory usage 
+ size_64        : 2 
+ size_128       : 0 
+ size_256       : 0 
+ size_512       : 0 
+ size_1024      : 0 
+ size_2048      : 0 
+ size_4096      : 0 
+ size_8192      : 0 
+ size_16384     : 0 
+ Total    :     128.00  bytes  376% util due to buckets 
+ pkt_id,time,fid,pkt_info,pkt,len,type,is_init,is_last,type,thread_id,src_ip,dest_ip,src_port 
+ 0 ,0.010000,1,0x55e43a157290,1,73,0,1,0,0,0,10000001,30000001,41668
+ 1 ,0.020000,1,0x55e43a156660,2,89,0,0,1,0,0,10000001,30000001,41668
+ 2 ,20.010000,2,0x55e43a157290,1,73,0,1,0,0,0,10000001,30000001,41669
+ 3 ,20.020000,2,0x55e43a156660,2,89,0,0,1,0,0,10000001,30000001,41669
+ 4 ,30.010000,3,0x55e43a157290,1,73,0,1,0,0,0,10000001,30000001,41670
+ 5 ,30.020000,3,0x55e43a156660,2,89,0,0,1,0,0,10000001,30000001,41670
+ 6 ,40.010000,4,0x55e43a157290,1,73,0,1,0,0,0,10000001,30000001,41671
+ 7 ,40.020000,4,0x55e43a156660,2,89,0,0,1,0,0,10000001,30000001,41671
+ 8 ,50.010000,5,0x55e43a157290,1,73,0,1,0,0,0,10000001,30000001,41672
+ 9 ,50.020000,5,0x55e43a156660,2,89,0,0,1,0,0,10000001,30000001,41672
+
+
+
+
+file stats 
+=================
+ m_total_bytes                           :     850.00  bytes 
+ m_total_pkt                             :      10.00  pkt 
+ m_total_open_flows                      :       5.00  flows 
+ m_total_pkt                             : 10 
+ m_total_open_flows                      : 5 
+ m_total_close_flows                     : 5 
+ m_total_bytes                           : 850 
+
+
+normal
+-------------
+ min_delta  : 10 usec 
+ cnt        : 0 
+ high_cnt   : 0 
+ max_d_time : 0 usec
+ sliding_average    : 0 usec
+ precent    : -nan %
+ histogram 
+ -----------
+ d time = 200l 100l 

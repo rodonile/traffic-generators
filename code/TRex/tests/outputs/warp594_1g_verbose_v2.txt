@@ -1,0 +1,63 @@
+ set dpdk queues mode to ONE_QUE 
+no client generator pool configured, using default pool
+no server generator pool configured, using default pool
+ -- loading cap file tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap 
+ -- loading cap file tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap 
+ -- loading cap file tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap 
+ -- loading cap file tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap 
+ -- loading cap file tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap 
+ -- loading cap file tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap 
+ -- loading cap file tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap 
+ -- loading cap file tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap 
+ -- loading cap file tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap 
+ -- loading cap file tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap 
+ id name                                     tps      cps       f-pkts f-bytes  duration Mb/sec  MB/sec c-flows PPS    errors flows
+ 00 tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap   164.00    164.00    216    76152    10.54   99.91  12.49    1728  35424    0    1
+ 01 tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap   164.00    164.00    216    76152    10.54   99.91  12.49    1728  35424    0    1
+ 02 tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap   164.00    164.00    216    76152    10.54   99.91  12.49    1728  35424    0    1
+ 03 tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap   164.00    164.00    216    76152    10.54   99.91  12.49    1728  35424    0    1
+ 04 tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap   164.00    164.00    216    76152    10.54   99.91  12.49    1728  35424    0    1
+ 05 tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap   164.00    164.00    216    76152    10.54   99.91  12.49    1728  35424    0    1
+ 06 tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap   164.00    164.00    216    76152    10.54   99.91  12.49    1728  35424    0    1
+ 07 tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap   164.00    164.00    216    76152    10.54   99.91  12.49    1728  35424    0    1
+ 08 tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap   164.00    164.00    216    76152    10.54   99.91  12.49    1728  35424    0    1
+ 09 tests/pcap_files/warp17_to_pythonTCP_594bytes.pcap   164.00    164.00    216    76152    10.54   99.91  12.49    1728  35424    0    1
+
+ 00 sum                                       1640.00  16400.00   2160   761520   105.38  999.11 124.89   17282 354240    0   10
+ Memory usage 
+ size_64        : 0 
+ size_128       : 0 
+ size_256       : 0 
+ size_512       : 0 
+ size_1024      : 1060 
+ size_2048      : 0 
+ size_4096      : 0 
+ size_8192      : 0 
+ size_16384     : 0 
+ Total    :       1.04 Mbytes  175% util due to buckets 
+
+
+
+
+file stats 
+=================
+ m_total_bytes                           :       3.49 Gbytes 
+ m_total_pkt                             :      10.63 Mpkt 
+ m_total_open_flows                      :      49.20 Kflows 
+ m_total_pkt                             : 10627200 
+ m_total_open_flows                      : 49200 
+ m_total_close_flows                     : 49200 
+ m_total_bytes                           : 3746678400 
+
+
+normal
+-------------
+ min_delta  : 10 usec 
+ cnt        : 0 
+ high_cnt   : 0 
+ max_d_time : 0 usec
+ sliding_average    : 0 usec
+ precent    : -nan %
+ histogram 
+ -----------
+ d time = 402l 100l 
